@@ -27,8 +27,8 @@ public class TWAgentPercept{
     final int AFTER = 1;
 
 	private TWEntity o;
-	private double t;  //最后一次观测的时间
-    private double firstT;   //第一次观测到的时间
+	private double t;  // last sense time
+    private double firstT;   // the first sense time
 	
 	/**
 	 * @return the t

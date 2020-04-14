@@ -39,7 +39,7 @@ public class NeighbourSpiral {
 		int steps = 1;
 		while (steps < maxRadius * 2) {
 			advance(steps);
-			advance(steps); // 最后会多一排这个
+			advance(steps);
 			steps++;
 		}
 		return list;

@@ -12,8 +12,6 @@ import sim.util.IntBag;
 import tileworld.environment.NeighbourSpiral;
 import tileworld.Parameters;
 import tileworld.environment.TWEntity;
-import tileworld.Parameters;
-import tileworld.agent.AgentParameter;
 
 
 import tileworld.environment.TWHole;
@@ -52,10 +50,10 @@ public class TWAgentWorkingMemory {
 	private final static float MEM_DECAY = 0.5f;
 	private ObjectGrid2D memoryGrid;
 	private TWAgentPercept[][] objects;
-	public double estimateLifeTime=50; // 对于lifetime的估计，会在过程中学习，注意前两个图可以直接取最好的结果而不用学。
-	public Class<?>[][] estimatedRemoveObject;  // 记录自动remove最后一次remove的类型，用在estimateLifeTime的学习
-	public int[][][] estimatedRemoveObjectTime; // 记录first发现的时间和remove时间
-	public int[][] lastNullPerceptTime; // 记录最后一次观测的null的时间，对于objectLifetimeEstimate有帮助
+	public double estimateLifeTime=50; // estiimation of lifetime
+	public Class<?>[][] estimatedRemoveObject;
+	public int[][][] estimatedRemoveObjectTime;
+	public int[][] lastNullPerceptTime; // for objectLifetimeEstimate
 
 	public TWAgentPercept[][] getObjects(){
 		return objects;
@@ -69,7 +67,7 @@ public class TWAgentWorkingMemory {
 	 * Stores (for each TWObject type) the closest object within sensor range,
 	 * null if no objects are in sensor range
 	 */
-	private HashMap<Class<?>, TWEntity> closestInSensorRange; // 每个种类记录最近的物体
+	private HashMap<Class<?>, TWEntity> closestInSensorRange;
 	static private List<Int2D> spiral = new NeighbourSpiral(Parameters.defaultSensorRange * 4).spiral();
 	//    private List<TWAgent> neighbouringAgents = new ArrayList<TWAgent>();
 
@@ -78,15 +76,13 @@ public class TWAgentWorkingMemory {
 		closestInSensorRange = new HashMap<Class<?>, TWEntity>(4);
 		this.me = moi;
 		this.objects = new TWAgentPercept[x][y]; 
-		this.estimatedRemoveObject = new Class<?>[x][y]; // 初始化是null
-		this.estimatedRemoveObjectTime = new int[x][y][2]; // 初始化0.0
-		this.lastNullPerceptTime = new int[x][y]; // 初始化0.0
+		this.estimatedRemoveObject = new Class<?>[x][y];
+		this.estimatedRemoveObjectTime = new int[x][y][2];
+		this.lastNullPerceptTime = new int[x][y];
 		this.schedule = schedule;
-		// 记录了所有观测
 		this.memoryGrid = new ObjectGrid2D(me.getEnvironment().getxDimension(), me.getEnvironment().getyDimension());
 	}
 
-	// 根据message升级memorymap
 	public void addObject(Object obj, int x, int y, int firstT, int lastT){
 		addObject(obj, x,  y, firstT, lastT, 100, 100);
 	}
@@ -104,7 +100,7 @@ public class TWAgentWorkingMemory {
 			if (objects[x][y] != null){
 				memorySize--;
 				TWAgentPercept memoryOBJ = objects[x][y];
-				// 学习estimateLifeTime
+				// learn estimateLifeTime
 				assert ((estimateLifeTime - objectLifetimeEstimate(memoryOBJ)) >= 0);
 				if (Math.abs(x-ax)+Math.abs(y-ay) >= 2){ 
 					// printTWPerception(memoryOBJ);
@@ -113,7 +109,7 @@ public class TWAgentWorkingMemory {
 				}
 				removeObject(x,y);
 			}
-			lastNullPerceptTime[x][y] = (int) schedule.getTime(); // 更新最后一次观测的null时间，只对真正观测有效
+			lastNullPerceptTime[x][y] = (int) schedule.getTime();
 		} else if (obj instanceof TWObject){
 			TWObject twObj = (TWObject) obj;
 			if(objects[x][y] == null) {
@@ -123,7 +119,7 @@ public class TWAgentWorkingMemory {
 					int rT = estimatedRemoveObjectTime[x][y][1];
 					if (schedule.getTime() - fT > estimateLifeTime*1.5){
 
-					} else { // remove 早了
+					} else { // remove
 						assert ((schedule.getTime() - rT) > 0);
 						estimateLifeTime += Math.min((schedule.getTime() - rT), estimateLifeTime/2) * AgentParameter.lifetimeLearningRate * (50.0/estimateLifeTime+estimateLifeTime/50.0);
 						// if(AgentParameter.lifetimeLearningRate > 0.001)AgentParameter.lifetimeLearningRate *= 0.99;
@@ -134,7 +130,7 @@ public class TWAgentWorkingMemory {
 				if (memoryOBJ.getO().getClass() != twObj.getClass()){
 					assert ((estimateLifeTime - objectLifetimeEstimate(memoryOBJ)) >= 0);
 					if (Math.abs(x-ax)+Math.abs(y-ay) >= 2){ 
-						System.out.println("惩罚时间："+(estimateLifeTime - objectLifetimeEstimate(memoryOBJ)));
+						System.out.println("Penalty time: "+(estimateLifeTime - objectLifetimeEstimate(memoryOBJ)));
 						estimateLifeTime -= Math.min((estimateLifeTime - objectLifetimeEstimate(memoryOBJ)), estimateLifeTime/5) * AgentParameter.lifetimeLearningRate* estimateLifeTime/100;
 						// if(AgentParameter.lifetimeLearningRate > 0.001)AgentParameter.lifetimeLearningRate *= 0.99;
 					}
@@ -168,9 +164,8 @@ public class TWAgentWorkingMemory {
 		} else if ( "object".equals(typeObject)){
 			int time0 = (int) Float.parseFloat(meSplit[4]);
 			int timeF = (int) Float.parseFloat(meSplit[5]);
-			// attention 这个地方虽然调用了getEnvironment,但绝对没有干坏事,最好还是改一下吧。。。（真实情况下不可能直接调用环境）
 			TWEntity o = (TWEntity) this.me.getEnvironment().getObjectGrid().get(xPos, yPos);
-			if (o != null){  // attention 有可能在这一步就捡了砖块了
+			if (o != null){
 				addObject(o, xPos, yPos, timeF, time0, oAx, oAy);
 			}
 		}
@@ -206,16 +201,15 @@ public class TWAgentWorkingMemory {
 		assert (sensedObjects.size() == objectXCoords.size() && sensedObjects.size() == objectYCoords.size());
 		//System.out.println(sensedObjects.size()); // 7*7 if the sensor range doesn't exceed the env range
 
-		for (int i = 0; i < sensedObjects.size(); i++) {  // 这里把null物体都观测了,不包括边缘.
+		for (int i = 0; i < sensedObjects.size(); i++) {
 			TWEntity o = (TWEntity) sensedObjects.get(i);
 			if (o instanceof TWFuelStation){
 				this.me.addTempAllMessage("FindFuelStation " + o.getX() + " " + o.getY());
-//				addObject(null, objectXCoords.get(i), objectYCoords.get(i), -1, -1, this.me.getX(), this.me.getY());
+				// addObject(null, objectXCoords.get(i), objectYCoords.get(i), -1, -1, this.me.getX(), this.me.getY());
 				continue;
 			}
 
 			if (!(o instanceof TWObject)) {
-				// 如果以前观测的lifetime之后，下一次观测消失了
 				if (memoryGrid.get(objectXCoords.get(i), objectYCoords.get(i)) instanceof TWObject){ 
 					addObject(null, objectXCoords.get(i), objectYCoords.get(i), -1, -1, this.me.getX(), this.me.getY());
 					memorySize--;
@@ -241,30 +235,8 @@ public class TWAgentWorkingMemory {
 			updateClosest(o);
 
 		}
-		//       Agents are currently not added to working memory. Depending on how 
-		//       communication is modelled you might want to do this.
-		//        neighbouringAgents.clear();
-		//        for (int i = 0; i < sensedAgents.size(); i++) {
-		//            
-		//            
-		//            if (!(sensedAgents.get(i) instanceof TWAgent)) {
-		//                assert false;
-		//            }
-		//            TWAgent a = (TWAgent) sensedAgents.get(i);
-		//            if(a.equals(me)){
-		//                continue;
-		//            }
-		//            neighbouringAgents.add(a);
-		//        }
 	}
 
-	//    public TWAgent getNeighbour(){
-	//        if(neighbouringAgents.isEmpty()){
-	//            return null;
-	//        }else{
-	//            return neighbouringAgents.get(0);
-	//        }
-	//    }
 
 	/**
 	 * updates memory using 2d array of sensor range - currently not used
@@ -279,8 +251,7 @@ public class TWAgentWorkingMemory {
 	// }
 
 	/**
-	 * removes all facts earlier than now - max memory time. 
-	 * TODO: Other facts are
+	 * removes all facts earlier than now - max memory time.
 	 * remove probabilistically (exponential decay of memory)
 	 */
 
@@ -301,8 +272,8 @@ public class TWAgentWorkingMemory {
 				TWAgentPercept currentMemory =  objects[x][y];
 				if(currentMemory!=null && objectLifetimeEstimate(currentMemory) > estimateLifeTime){
 					this.estimatedRemoveObject[x][y] = currentMemory.getO().getClass();
-					this.estimatedRemoveObjectTime[x][y][0] = (int) currentMemory.getFirstT();  // first发现时间
-					this.estimatedRemoveObjectTime[x][y][1] = (int) schedule.getTime();  // remove时间
+					this.estimatedRemoveObjectTime[x][y][0] = (int) currentMemory.getFirstT();
+					this.estimatedRemoveObjectTime[x][y][1] = (int) schedule.getTime();
 					removeObject(x,y);
 					memorySize--;
 		        }
@@ -310,13 +281,14 @@ public class TWAgentWorkingMemory {
 		}
 	}
 
-	public void removeObject(TWEntity o){ // 只是单纯的remove记忆中的object
+	public void removeObject(TWEntity o){
 		memoryGrid.set(o.getX(), o.getY(), null);
 		objects[o.getX()][o.getY()] = null;
 		if (closestInSensorRange.get(o.getClass()) != null){
 			closestInSensorRange.put(o.getClass(), null);
 		}
 	}
+
 	public void removeObject(int posx, int posy){
 		memoryGrid.set(posx,posy, null);
 		objects[posx][posy] = null;
@@ -446,13 +418,10 @@ public class TWAgentWorkingMemory {
 	 * @return true if the cell is blocked in our memory
 	 */
 	public boolean isCellBlocked(int tx, int ty) {
-
 		//no memory at all, so assume not blocked
 		if (objects[tx][ty] == null) {
 			return false;
 		}
-
-
 		TWEntity e = (TWEntity) objects[tx][ty].getO();
 		//is it an obstacle?
 		return (e instanceof TWObstacle);

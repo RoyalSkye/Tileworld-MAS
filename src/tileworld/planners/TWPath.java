@@ -87,7 +87,6 @@ public class TWPath {
         updateLastAdded(d.getX(), d.getY());
     }
 
-    //do we need this??
     public void prependStep(TWPathStep d) {
         path.addFirst(d);
         updateLastAdded(d.getX(), d.getY());
@@ -98,8 +97,6 @@ public class TWPath {
         this.appendStep(new TWPathStep(x, y, this.getDirection(this.lastAddedX, this.lastAddedY, x, y)));
     }
 
-    //do we need this??
-    //We are adding in reverse order so go from current x,y to last added to get direction
     public void prependStep(int x, int y) {
 
         this.prependStep(new TWPathStep(x, y, this.getReverseDirection(this.lastAddedX, this.lastAddedY, x, y)));

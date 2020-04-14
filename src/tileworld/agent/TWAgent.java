@@ -32,9 +32,9 @@ import tileworld.exceptions.CellBlockedException;
  */
 public abstract class TWAgent extends TWEntity implements Steppable {
 
-    public void addTempMessage(String mess){} // attention 最后去掉
+    public void addTempMessage(String mess){}
 
-    public void addTempAllMessage(String mess){} // attention 最后去掉
+    public void addTempAllMessage(String mess){}
 
     protected int score;
 
@@ -73,7 +73,7 @@ public abstract class TWAgent extends TWEntity implements Steppable {
      *
      */
     public void sense() {
-        System.out.println(this.getName() + " sense");
+        // System.out.println(this.getName() + " sense");
         sensor.sense();
     }
     
@@ -221,7 +221,7 @@ public abstract class TWAgent extends TWEntity implements Steppable {
     public static Portrayal getPortrayal() {
         // System.out.println("TWAgent getPortrayal");
         //red filled box.
-        return new TWAgentPortrayal(Color.red, Parameters.defaultSensorRange) {
+        return new TWAgentPortrayal(Color.blue, Parameters.defaultSensorRange) {
 
             @Override
             public Inspector getInspector(LocationWrapper wrapper, GUIState state) {

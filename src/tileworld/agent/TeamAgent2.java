@@ -8,7 +8,6 @@ import sim.display.GUIState;
 import sim.portrayal.Inspector;
 import sim.portrayal.LocationWrapper;
 import sim.portrayal.Portrayal;
-import tileworld.Parameters;
 import tileworld.environment.TWDirection;
 import tileworld.environment.TWEntity;
 import tileworld.environment.TWEnvironment;
@@ -18,13 +17,8 @@ import tileworld.environment.TWFuelStation;
 import tileworld.exceptions.CellBlockedException;
 import tileworld.planners.AstarPathGenerator;
 import tileworld.planners.TWPath;
+import tileworld.environment.TWObstacle;
 import tileworld.planners.TWPathStep;
-// import sim.display.GUIState;
-// import sim.portrayal.Inspector;
-// import sim.portrayal.LocationWrapper;
-// import sim.portrayal.Portrayal;
-// import java.awt.Color;
-// import tileworld.Parameters;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -44,7 +38,7 @@ import java.util.Comparator;
  * Description:
  *
  */
-public class MyTWAgent2 extends TWAgent{
+public class TeamAgent2 extends TWAgent{
     private String name="agent2";
     private String tempMessage = "";
     private String tempAllMessage = "";
@@ -52,8 +46,8 @@ public class MyTWAgent2 extends TWAgent{
     private int fuelY = -1;
     private final int mapsizeX = this.getEnvironment().getxDimension();
     private final int mapsizeY = this.getEnvironment().getyDimension();
-    private int[][] seenMap = new int[mapsizeX][mapsizeY]; 
-    private ArrayList<int[]> mapChain = new ArrayList<int[]>(); //  [[x1,y1], [x2,y2], [x3,y3],...] 可以超过范围
+    private int[][] seenMap = new int[mapsizeX][mapsizeY];
+    private ArrayList<int[]> mapChain = new ArrayList<int[]>(); //  [[x1,y1], [x2,y2], [x3,y3],...]
     private final int mapChainLength;
     private String agentState1="initial";
     private int agentState2=0;
@@ -77,11 +71,11 @@ public class MyTWAgent2 extends TWAgent{
     private int[] cPlanFuelPoint=new int[]{-1,-1};
 
 
-    public MyTWAgent2(String name, int xpos, int ypos, TWEnvironment env, double fuelLevel) {
+    public TeamAgent2(String name, int xpos, int ypos, TWEnvironment env, double fuelLevel) {
         super(xpos,ypos,env,fuelLevel);
         this.name = name;
         mapChainLength = this.initalMapChain();
-        for(int i=0; i<seenMap.length;i++) Arrays.fill(seenMap[i], -1); 
+        for(int i=0; i<seenMap.length;i++) Arrays.fill(seenMap[i], -1);
     }
 
     private void cPlanSearchPointInitial(){
@@ -105,10 +99,7 @@ public class MyTWAgent2 extends TWAgent{
     }
 
     private void cPlanInitalFuelCheckPoint(){
-        if (cPlanSearchPoint.size() == 0) {
-            System.out.println(3/(3-3));
-        }
-        int curX=-1; 
+        int curX=-1;
         int curY=-1;
         int curDis = 99999;
         for(int k=0; k<=3; k++){
@@ -121,7 +112,7 @@ public class MyTWAgent2 extends TWAgent{
                     curX=tempX; curY=tempY;
                     curDis=Math.abs(fuelX-tempX)+Math.abs(fuelY-tempY);
                 }
-            } 
+            }
         }
         cPlanFuelPoint = new int[]{curX, curY};
         System.out.println("cPlanFuelPoint x,y:"+cPlanFuelPoint[0]+" "+cPlanFuelPoint[1]);
@@ -141,7 +132,7 @@ public class MyTWAgent2 extends TWAgent{
         return nearIndex;
     }
 
-    public void initalSearchTileChain(int x1, int y1, int x2, int y2, int ax, int ay){  // (左上角，右下角(y2-y1)/7最好是奇数，agentposition(第一个pos和agent最近))
+    public void initalSearchTileChain(int x1, int y1, int x2, int y2, int ax, int ay){
         this.search_tile_chain.clear();
         int curX = x1;
         int curY = y1;
@@ -163,7 +154,7 @@ public class MyTWAgent2 extends TWAgent{
             } else if (direction == 1 && curY < y2){
                 curY += 7;
                 direction = -1;
-            } else if (direction == 1){ 
+            } else if (direction == 1){
                 direction = -1;
                 curX -= 7;
             } else if (direction == -1 && curX > x1+7){
@@ -190,15 +181,15 @@ public class MyTWAgent2 extends TWAgent{
         int curX = mapsizeX/2 - 17;
         int curY = mapsizeY/2 - 17;
         int[] allPoint = new int[] {0,0, 1,0, 1,1, 2,1, 2,0, 3,0, 3,1, 4,1, 4,0, 5,0, 5,1, 5,2, 5,3, 4,3, 4,2, 3,2, 3,3, 2,3, 2,2, 1,2, 1,3, 1,4,
-            2,4, 3,4, 4,4, 5,4, 5,5, 4,5, 3,5, 2,5, 1,5, 0,5, 0,4, 0,3, 0,2, 0,1};
+                2,4, 3,4, 4,4, 5,4, 5,5, 4,5, 3,5, 2,5, 1,5, 0,5, 0,4, 0,3, 0,2, 0,1};
         int len=6*6;
         if (mapsizeX >= 60 && mapsizeY >= 60) {
             sizeMoreThan60=true;
             curX = mapsizeX/2 - 24;
             curY = mapsizeY/2 - 21;
-            allPoint = new int[] {0,0, 1,0, 1,1, 2,1, 2,0, 3,0, 3,1, 4,1, 4,0, 5,0, 5,1, 6,1, 6,0, 7,0, 7,1, 7,2, 7,3, 6,3, 6,2, 5,2, 5,3, 
-                4,3, 4,2, 3,2, 3,3, 2,3, 2,2, 1,2, 1,3, 1,4, 1,5, 2,5, 2,4, 3,4, 3,5, 4,5, 4,4, 5,4, 5,5, 6,5, 6,4, 7,4, 7,5, 7,6, 6,6, 5,6, 4,6,
-                3,6, 2,6, 1,6, 0,6, 0,5, 0,4, 0,3, 0,2, 0,1};
+            allPoint = new int[] {0,0, 1,0, 1,1, 2,1, 2,0, 3,0, 3,1, 4,1, 4,0, 5,0, 5,1, 6,1, 6,0, 7,0, 7,1, 7,2, 7,3, 6,3, 6,2, 5,2, 5,3,
+                    4,3, 4,2, 3,2, 3,3, 2,3, 2,2, 1,2, 1,3, 1,4, 1,5, 2,5, 2,4, 3,4, 3,5, 4,5, 4,4, 5,4, 5,5, 6,5, 6,4, 7,4, 7,5, 7,6, 6,6, 5,6, 4,6,
+                    3,6, 2,6, 1,6, 0,6, 0,5, 0,4, 0,3, 0,2, 0,1};
             len=8*7;
         }
         int x1 = curX; int y1 = curY;
@@ -255,7 +246,7 @@ public class MyTWAgent2 extends TWAgent{
         return index;
     }
 
-    private void updateSeenMap(int x, int y){ 
+    private void updateSeenMap(int x, int y){
         for (int i=x-3;i<x+4;i++){
             for (int j=y-3;j<y+4;j++){
                 if (0 <= i & i <= mapsizeX-1 & 0 <= j & j<= mapsizeY-1){
@@ -290,7 +281,7 @@ public class MyTWAgent2 extends TWAgent{
 
     @Override
     public void communicate() {
-        System.out.println(this.getName() + " communicate");
+        // System.out.println(this.getName() + " communicate");
         Message messAge = new Message(this.name, "private", tempMessage);
         this.getEnvironment().receiveMessage(messAge); // this will send the message to the broadcast channel of the environment
         Message messAge2 = new Message(this.name, "all", tempAllMessage);
@@ -341,7 +332,7 @@ public class MyTWAgent2 extends TWAgent{
         return getSearchField(-5,-5,-5,-5);
     }
 
-    private int[] getSearchField(int nx1, int ny1, int nx2, int ny2){ // 根据ELT和unseenup找到最想搜索的位置
+    private int[] getSearchField(int nx1, int ny1, int nx2, int ny2){
         int xlen=14;
         int ylen=14;
         if (getELT() <= 50){
@@ -393,8 +384,8 @@ public class MyTWAgent2 extends TWAgent{
             for (int y = 0; y < this.getMemory().getObjects()[x].length; y++) {
                 TWAgentPercept currentMemory =  this.getMemory().getObjects()[x][y];
                 if (!(currentMemory == null)  && (currentMemory.getO() instanceof TWTile || currentMemory.getO() instanceof TWHole )) {
-                    if ( (Math.abs(ax-currentMemory.getO().getX())+Math.abs(ay-currentMemory.getO().getY()) ) < 
-                        objectLifeRemainEstimate(currentMemory)) possibleTH.add(currentMemory);
+                    if ( (Math.abs(ax-currentMemory.getO().getX())+Math.abs(ay-currentMemory.getO().getY()) ) <
+                            objectLifeRemainEstimate(currentMemory)) possibleTH.add(currentMemory);
                 }
             }
         }
@@ -454,7 +445,7 @@ public class MyTWAgent2 extends TWAgent{
             curPossibleRoute.remove(tempR);
         }
         if ("score".equals(type)) return curHighScore;
-        else {System.out.println(3/(3-3)); return 0;}
+        else {return 0;}
     }
 
     private ArrayList<int[]> getPickRoute(int ax, int ay, int cTiles){
@@ -465,8 +456,8 @@ public class MyTWAgent2 extends TWAgent{
             for (int y = 0; y < this.getMemory().getObjects()[x].length; y++) {
                 TWAgentPercept currentMemory =  this.getMemory().getObjects()[x][y];
                 if (!(currentMemory == null)  && (currentMemory.getO() instanceof TWTile || currentMemory.getO() instanceof TWHole )) {
-                    if ( (Math.abs(ax-currentMemory.getO().getX())+Math.abs(ay-currentMemory.getO().getY()) ) < 
-                        objectLifeRemainEstimate(currentMemory)) possibleTH.add(currentMemory);
+                    if ( (Math.abs(ax-currentMemory.getO().getX())+Math.abs(ay-currentMemory.getO().getY()) ) <
+                            objectLifeRemainEstimate(currentMemory)) possibleTH.add(currentMemory);
                 }
             }
         }
@@ -527,18 +518,18 @@ public class MyTWAgent2 extends TWAgent{
         }
         System.out.println(this.name+"   picking route");
         System.out.println("pick score: "+curHighScore + "   PredictStep: "+curPredictStep);
-        for (int[] route : finalRoute){ 
+        for (int[] route : finalRoute){
             System.out.println("X, Y: "+route[0]+" "+route[1]);
         }
         return finalRoute;
     }
 
-    private boolean change_state(String st1, int st2, int st3){ // 判断需不需要changestate, 包括是否停止pick，从pick到search等等
+    private boolean change_state(String st1, int st2, int st3){
         if ("AddingFuel".equals(agentState1)){return false;} else
         if ("SearchingTile".equals(agentState1)){
             if (st1.equals(agentState1) && (st2==agentState2 || st2 == -1) && agentState3 < search_tile_chain.size()) return false;
             return true;
-        } else 
+        } else
         if ("PickingTile".equals(agentState1) && st2==2){
             if ("SearchingTile".equals(st1)){
                 if (AgentParameter.aPlanPickStop > memory_tile_score(this.getX(), this.getY(), this.carriedTiles.size()) || agentState3>=pick_tile_chain.size()){
@@ -554,12 +545,12 @@ public class MyTWAgent2 extends TWAgent{
         return true;
     }
 
-    private void state_changer(String st1, int st2, int st3){ // change state 需要完成的事情
+    private void state_changer(String st1, int st2, int st3){
         if (!change_state(st1, st2, st3))return;
         agentState1 = st1;
         agentState2 = st2;
         agentState3 = st3;
-        if ("SearchingTile".equals(st1) && st2==2){  // search策略2初始化链条
+        if ("SearchingTile".equals(st1) && st2==2){
             int[] searchField = getSearchField(otherASF[0], otherASF[1], otherASF[2], otherASF[3]);
             addTempMessage("MyLastSearchField "+searchField[0]+" "+searchField[1]+" "+searchField[2]+" "+searchField[3]);
             initalSearchTileChain(searchField[0], searchField[1], searchField[2], searchField[3], this.getX(), this.getY());
@@ -567,10 +558,10 @@ public class MyTWAgent2 extends TWAgent{
         if ("SearchingTile".equals(st1) && st2==1){
             if (search_tile_chain.size()==0) initalSearchTileChainb(this.fuelX, this.fuelY);
         }else
-        if ("PickingTile".equals(st1) && st2==2){ // 双人pickingtile策略a
+        if ("PickingTile".equals(st1) && st2==2){
             pick_tile_chain = getPickRoute(this.getX(), this.getY(), this.carriedTiles.size());
             agentState1 = "PickingTile";
-            agentState2 = 2; // AplanPick 在a策略下的pick， 这里2是因为a策略有点两个分别的意思。
+            agentState2 = 2;
             agentState3 = 0;
         }
     }
@@ -621,8 +612,8 @@ public class MyTWAgent2 extends TWAgent{
         int indx=-1;
         int indy=-1;
         int allowDis = AgentParameter.agentMaxDis;
-        if ("agent1".equals(this.name)) allowDis = AgentParameter.agent1pickDis;
         double curChoiceScore=99999.0;
+        if (bPlanPickArea.size()==0) return new int[]{-1, -1};
         int[] lastPoint=bPlanPickArea.get(bPlanPickArea.size()-1);
         for (int[] posA : bPlanPickArea){
             for (int i=-3; i <=3; i++){
@@ -630,13 +621,10 @@ public class MyTWAgent2 extends TWAgent{
                     TWAgentPercept currentMemory =  this.getMemory().getObjects()[posA[0]+i][posA[1]+j];
                     if (!(currentMemory == null)){
                         if ((currentMemory.getO() instanceof TWTile && this.carriedTiles.size() < 3) ||
-                            (currentMemory.getO() instanceof TWHole && this.carriedTiles.size() > 0)){
+                                (currentMemory.getO() instanceof TWHole && this.carriedTiles.size() > 0)){
                             int curDis = (int)this.getDistanceTo(currentMemory.getO());
                             if ("agent2".equals(this.name)){
                                 curDis += (int)currentMemory.getO().getDistanceTo(otherAgentPosition[0], otherAgentPosition[1]);
-                            } else if ("agent1".equals(this.name)){
-                                curDis += Math.abs(lastPoint[0]-currentMemory.getO().getX())+Math.abs(currentMemory.getO().getY()-lastPoint[1]);
-                                curDis/=2;
                             }
                             System.out.println("tile x,y:"+(posA[0]+i)+" "+(posA[1]+j)+"  distance:"+curDis+"  reached ELT"+(objectLifetimeEstimate(currentMemory)+this.getDistanceTo(currentMemory.getO())));
                             if (curDis <= allowDis && getELT() > objectLifetimeEstimate(currentMemory)+this.getDistanceTo(currentMemory.getO())){
@@ -665,11 +653,11 @@ public class MyTWAgent2 extends TWAgent{
         if (curPath == null){
             System.out.println("currentPathLenth = 0  (null)");
         }else{
-            System.out.println("PathLen = "+ curPath.getpath().size()+ 
-                "  next step--->("+curPath.getStep(Math.min(curPathStep,curPath.getpath().size()-1)).getX()+
-                ","+curPath.getStep(Math.min(curPathStep,curPath.getpath().size()-1)).getY()+")     " +
-                "target pos--->(" +curPath.getStep(curPath.getpath().size()-1).getX()+
-                ","+curPath.getStep(curPath.getpath().size()-1).getY()+")");
+            System.out.println("PathLen = "+ curPath.getpath().size()+
+                    "  next step--->("+curPath.getStep(Math.min(curPathStep,curPath.getpath().size()-1)).getX()+
+                    ","+curPath.getStep(Math.min(curPathStep,curPath.getpath().size()-1)).getY()+")     " +
+                    "target pos--->(" +curPath.getStep(curPath.getpath().size()-1).getX()+
+                    ","+curPath.getStep(curPath.getpath().size()-1).getY()+")");
         }
         String bPPA = "bPlanPickArea: ";
         for (int[] p : bPlanPickArea){
@@ -680,7 +668,7 @@ public class MyTWAgent2 extends TWAgent{
     }
 
     protected TWThought think() {
-        System.out.println(this.getName() + " think");
+        // System.out.println(this.getName() + " think");
         if (this.carriedTiles.size() < 3 && this.getMemory().getMemoryGrid().get(this.getX(), this.getY()) instanceof TWTile){
             return new TWThought(TWAction.PICKUP);
         }
@@ -692,13 +680,12 @@ public class MyTWAgent2 extends TWAgent{
         if (this.getX()==fuelX && this.getY()==fuelY && this.getFuelLevel() <= 490){
             return new TWThought(TWAction.REFUEL);
         }
-        // 发出自己位置的信息，对方收到的时候已经是上一步的位置了（可以考虑在action的时候发出方向信息来修正）
+
         // if (this.rethinking==0) this.addTempMessage("MyPosition " + this.getX()+" "+ this.getY());
-        if (this.rethinking==0 && "agent1".equals(this.name)) this.addTempMessage("MyEstimateLifeTime "+getELT());
         if (this.rethinking==0 && fuelX != -1) this.unseenMapOneStep();
         this.addTempMessage("MyState " + this.agentState1 + " " + this.agentState2 + " " + this.agentState3);
 
-        //接受信息，随时更新memory的地图为公用地图
+        //receive message, and update memory
         if (rethinking == 0){
             for (Message message : this.getEnvironment().getMessages()){
                 System.out.println(this.getName() + " receive message from " + message.getFrom() + " to " + message.getTo() + " :" + message.getMessage());
@@ -710,100 +697,95 @@ public class MyTWAgent2 extends TWAgent{
                         meS = mes.split(" ");
                         messageType = meS[0];
                         switch(messageType){
-
-                            // case "Request":   // 只对agent1
-                            // get_scheme();
-                            // break;
-
                             case "Require":
-                            if ("AddingFuel".equals(agentState1)) break;
-                            String subrequire = meS[1];
-                            if ("SearchingTile".equals(subrequire)){ 
-                                switch(meS[2]){
-                                    case "AplanSearch":
-                                    if(change_state(meS[1], 2, 0)){
-                                        state_changer("SearchingTile", 2, 0);
-                                    }
-                                    break;
-                                    case "BplanSearch":
+                                if ("AddingFuel".equals(agentState1)) break;
+                                String subrequire = meS[1];
+                                if ("SearchingTile".equals(subrequire)){
+                                    switch(meS[2]){
+                                        case "AplanSearch":
+                                            if(change_state(meS[1], 2, 0)){
+                                                state_changer("SearchingTile", 2, 0);
+                                            }
+                                            break;
+                                        case "BplanSearch":
 
-                                    break;
-                                }
-                            } else if ("PickingTile".equals(subrequire)){
-                                switch(meS[2]){
-                                    case "AplanPick":
-                                    if(change_state("PickingTile", 2, 0)){
-                                        state_changer("PickingTile", 2, 0);
+                                            break;
                                     }
-                                    break;
-                                    case "BplanPick":
-                                    if(change_state("PickingTile", 1, 0)){
-                                        state_changer("PickingTile", 1, 0);
+                                } else if ("PickingTile".equals(subrequire)){
+                                    switch(meS[2]){
+                                        case "AplanPick":
+                                            if(change_state("PickingTile", 2, 0)){
+                                                state_changer("PickingTile", 2, 0);
+                                            }
+                                            break;
+                                        case "BplanPick":
+                                            if(change_state("PickingTile", 1, 0)){
+                                                state_changer("PickingTile", 1, 0);
+                                            }
+                                            break;
                                     }
-                                    break;
+                                } else if ("planC".equals(subrequire)){
+                                    agentState1="planC";
+                                    agentState2=3;
+                                    agentState3=Math.max(0, agentState3);
                                 }
-                            } else if ("planC".equals(subrequire)){
-                                agentState1="planC";
-                                agentState2=3;
-                                agentState3=Math.max(0, agentState3);
-                            }
-                            break;
+                                break;
 
                             case "MyLastSearchField":
-                            otherASF = new int[] {(int) Float.parseFloat(meS[1]), (int) Float.parseFloat(meS[2]), (int) Float.parseFloat(meS[3]), (int) Float.parseFloat(meS[4])};
-                            break;
+                                otherASF = new int[] {(int) Float.parseFloat(meS[1]), (int) Float.parseFloat(meS[2]), (int) Float.parseFloat(meS[3]), (int) Float.parseFloat(meS[4])};
+                                break;
 
                             case "UpdateMemoryMap":
-                            if (this.rethinking==0) this.getMemory().updateMemory(mes, otherAgentPosition[0], otherAgentPosition[1]);
-                            break;
+                                if (this.rethinking==0) this.getMemory().updateMemory(mes, otherAgentPosition[0], otherAgentPosition[1]);
+                                break;
 
                             case "MyEstimateLifeTime":
-                            this.getMemory().estimateLifeTime = Double.parseDouble(meS[1]);
-                            break;
+                                this.getMemory().estimateLifeTime = Double.parseDouble(meS[1]);
+                                break;
 
                             case "cPlanSearchPointInitial":
-                            if (cPlanSearchPoint.size()==0){
-                                if ("byX".equals(meS[1])){
-                                    cPlanSearchPoint.clear();
-                                    cPlanSearchPoint.add(new int[] {mapsizeX/2+4, 3});
-                                    cPlanSearchPoint.add(new int[] {mapsizeX-4, 3});
-                                    cPlanSearchPoint.add(new int[] {mapsizeX-4, mapsizeY-4});
-                                    cPlanSearchPoint.add(new int[] {mapsizeX/2+4, mapsizeY-4});
-                                } else if ("byY".equals(meS[1])){
-                                    cPlanSearchPoint.clear();
-                                    cPlanSearchPoint.add(new int[] {3,mapsizeY/2+4});
-                                    cPlanSearchPoint.add(new int[] {mapsizeX-4, mapsizeY/2+4});
-                                    cPlanSearchPoint.add(new int[] {mapsizeX-4, mapsizeY-4});
-                                    cPlanSearchPoint.add(new int[] {3, mapsizeY-4});
+                                if (cPlanSearchPoint.size()==0){
+                                    if ("byX".equals(meS[1])){
+                                        cPlanSearchPoint.clear();
+                                        cPlanSearchPoint.add(new int[] {mapsizeX/2+4, 3});
+                                        cPlanSearchPoint.add(new int[] {mapsizeX-4, 3});
+                                        cPlanSearchPoint.add(new int[] {mapsizeX-4, mapsizeY-4});
+                                        cPlanSearchPoint.add(new int[] {mapsizeX/2+4, mapsizeY-4});
+                                    } else if ("byY".equals(meS[1])){
+                                        cPlanSearchPoint.clear();
+                                        cPlanSearchPoint.add(new int[] {3,mapsizeY/2+4});
+                                        cPlanSearchPoint.add(new int[] {mapsizeX-4, mapsizeY/2+4});
+                                        cPlanSearchPoint.add(new int[] {mapsizeX-4, mapsizeY-4});
+                                        cPlanSearchPoint.add(new int[] {3, mapsizeY-4});
+                                    }
+                                    cPlanInitalFuelCheckPoint();
                                 }
-                                cPlanInitalFuelCheckPoint();
-                            }
-                            break;
+                                break;
 
                             case "MyPosition":
-                            otherAgentPosition[0] = Integer.parseInt(meS[1]);
-                            otherAgentPosition[1] = Integer.parseInt(meS[2]);
-                            break;
+                                otherAgentPosition[0] = Integer.parseInt(meS[1]);
+                                otherAgentPosition[1] = Integer.parseInt(meS[2]);
+                                break;
 
                             case "MyCarriedTiles":
-                            otherCarriedTiles = Integer.parseInt(meS[1]);
-                            break;
+                                otherCarriedTiles = Integer.parseInt(meS[1]);
+                                break;
 
                             case "MyState":
-                            otherAgentState1 = meS[1];
-                            otherAgentState2 = Integer.parseInt(meS[2]);
-                            otherAgentState3 = Integer.parseInt(meS[3]);
-                            break;
+                                otherAgentState1 = meS[1];
+                                otherAgentState2 = Integer.parseInt(meS[2]);
+                                otherAgentState3 = Integer.parseInt(meS[3]);
+                                break;
 
-                            case "GoToFindFuelStation": // 只会在开始的时候发生
-                            this.agentState1 = "FuelStationFinding";
-                            this.agentState2 = Integer.parseInt(meS[1]);
-                            if (this.agentState2 == 9){
-                                this.agentState3 = Integer.parseInt(meS[2]);
-                            } else {
-                                this.agentState3 = 1;
-                            }
-                            break;
+                            case "GoToFindFuelStation":
+                                this.agentState1 = "FuelStationFinding";
+                                this.agentState2 = Integer.parseInt(meS[1]);
+                                if (this.agentState2 == 9){
+                                    this.agentState3 = Integer.parseInt(meS[2]);
+                                } else {
+                                    this.agentState3 = 1;
+                                }
+                                break;
 
                         }
                     }
@@ -819,35 +801,35 @@ public class MyTWAgent2 extends TWAgent{
                         switch(messageType){
 
                             case "FindFuelStation":
-                            if (fuelX == -1){
-                                this.fuelX = Integer.parseInt(meS[1]);
-                                this.fuelY = Integer.parseInt(meS[2]);
-                                System.out.println(this.name + " received FindFuelStation!!");
-                                this.agentState1="idle";
-                                this.agentState3=0;
-                                curPath = null;
-                                curPathStep=0;
-                            }
-                            break;
+                                if (fuelX == -1){
+                                    this.fuelX = Integer.parseInt(meS[1]);
+                                    this.fuelY = Integer.parseInt(meS[2]);
+                                    System.out.println(this.name + " received FindFuelStation!!");
+                                    this.agentState1="idle";
+                                    this.agentState3=0;
+                                    curPath = null;
+                                    curPathStep=0;
+                                }
+                                break;
                             case "bPlanPickAreaUpdate":
-                            if (bPlanPickArea.size()>0 && (bPlanPickArea.get(bPlanPickArea.size()-1)[0]==Integer.parseInt(meS[1])&&
-                                bPlanPickArea.get(bPlanPickArea.size()-1)[1]==Integer.parseInt(meS[2]))) {
+                                if (bPlanPickArea.size()>0 && (bPlanPickArea.get(bPlanPickArea.size()-1)[0]==Integer.parseInt(meS[1])&&
+                                        bPlanPickArea.get(bPlanPickArea.size()-1)[1]==Integer.parseInt(meS[2]))) {
 
-                            }
-                            else if (getELT() / 7 + 1> bPlanPickArea.size()){
-                                bPlanPickArea.add(new int[] {Integer.parseInt(meS[1]), Integer.parseInt(meS[2])});
-                            } else {
-                                bPlanPickArea.remove(bPlanPickArea.get(0));
-                                bPlanPickArea.add(new int[] {Integer.parseInt(meS[1]), Integer.parseInt(meS[2])});
-                            }
-                            break;
+                                }
+                                else if (getELT() / 7 + 1> bPlanPickArea.size()){
+                                    bPlanPickArea.add(new int[] {Integer.parseInt(meS[1]), Integer.parseInt(meS[2])});
+                                } else {
+                                    bPlanPickArea.remove(bPlanPickArea.get(0));
+                                    bPlanPickArea.add(new int[] {Integer.parseInt(meS[1]), Integer.parseInt(meS[2])});
+                                }
+                                break;
                         }
                     }
                 }
             }
         }
 
-        if (otherAgentPosition[0] == -1) return new TWThought(TWAction.MOVE,TWDirection.Z); // 只会在一开始的时候发生
+        if (otherAgentPosition[0] == -1) return new TWThought(TWAction.MOVE,TWDirection.Z);
 
         if (fuelX != -1 && Math.abs(this.getX()-fuelX)+Math.abs(this.getY()-fuelY) != 0 && this.agentState1!="AddingFuel"){
             int toFuelStepEst = Math.abs(this.getX()-fuelX)+Math.abs(this.getY() - fuelY);
@@ -870,7 +852,7 @@ public class MyTWAgent2 extends TWAgent{
                 if (toFuelPath != null){
                     this.agentState1="AddingFuel";
                     this.curPath = toFuelPath;
-                    this.curPathStep=0; 
+                    this.curPathStep=0;
                     rethinking = 0;
                 }
             }
@@ -882,8 +864,7 @@ public class MyTWAgent2 extends TWAgent{
         }
 
         printAgentState();
-        //  判断状态给出反应
-        if (!(curPath == null)  &&  this.rethinking==0 && ! "FuelStationFinding".equals(agentState1)){ // 在有curPath的情况下。
+        if (!(curPath == null)  &&  this.rethinking==0 && ! "FuelStationFinding".equals(agentState1)){
             if ("PickingTile".equals(agentState1)){
                 if (agentState2==1){
                     if ((this.getX()!=bPlanPickTarget[0] || this.getY()!=bPlanPickTarget[1]) && bPlanPickTarget[0] != -1){
@@ -901,7 +882,7 @@ public class MyTWAgent2 extends TWAgent{
                     if (pick_tile_chain.size()==0 && "agent2".equals(this.name)){
                         addTempMessage("Request");
                         agentState3 = 0;
-                        return new TWThought(TWAction.MOVE,getRandomDirection());              
+                        return new TWThought(TWAction.MOVE,getRandomDirection());
                     }
                     Object curObj = this.getMemory().getMemoryGrid().get(pick_tile_chain.get(agentState3)[0], pick_tile_chain.get(agentState3)[1]);
                     if (!(curObj instanceof TWTile) && !(curObj instanceof TWHole)){
@@ -911,8 +892,8 @@ public class MyTWAgent2 extends TWAgent{
                         return think();
                     }
                 }
-            } else 
-            if ("SearchingTile".equals(agentState1) || "planC".equals(agentState1)){ // 贪心度
+            } else
+            if ("SearchingTile".equals(agentState1) || "planC".equals(agentState1)){
                 int greedy=0;
                 if (agentState2==1) greedy=AgentParameter.pickGreedyb;
                 if (agentState2==3) greedy=AgentParameter.pickGreedyc;
@@ -921,13 +902,13 @@ public class MyTWAgent2 extends TWAgent{
                 TWTile closeTile = (TWTile) this.getMemory().getClosestObjectInSensorRange(TWTile.class);
                 TWHole closeHole = (TWHole) this.getMemory().getClosestObjectInSensorRange(TWHole.class);
                 if (closeTile != null && this.carriedTiles.size() < 3 &&
-                 this.getDistanceTo(closeTile) <= greedy){
+                        this.getDistanceTo(closeTile) <= greedy){
                     tempDis = this.getDistanceTo(closeTile);
                     curPath = pathGenerator.findPath(this.getX(), this.getY(), closeTile.getX(), closeTile.getY());
                     curPathStep=0;
                 }
                 if (closeHole != null && this.carriedTiles.size() > 0 &&
-                 this.getDistanceTo(closeHole) <= Math.min(greedy, tempDis)){
+                        this.getDistanceTo(closeHole) <= Math.min(greedy, tempDis)){
                     curPath = pathGenerator.findPath(this.getX(), this.getY(), closeHole.getX(), closeHole.getY());
                     curPathStep=0;
                 }
@@ -938,30 +919,26 @@ public class MyTWAgent2 extends TWAgent{
                 return think();
             }
             return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection());
-        } else 
+        } else
         if ("AddingFuel".equals(this.agentState1)){
             if (rethinking==1){
                 curPath = pathGenerator.findPath(this.getX(), this.getY(), fuelX, fuelY);
                 curPathStep = 0;
-            } 
+            }
             if (curPath == null){
-                System.out.println("WWWWWWWWWWWWWWWHHHHHHHHHHHHHHHHYYYYYYYYYYYYYYYYYYYYY1");  // 基本不可能的！！
+                System.out.println("WWWWWWWWWWWWWWWHHHHHHHHHHHHHHHHYYYYYYYYYYYYYYYYYYYYY1");
             } else {
                 return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection());
             }
-        } else 
+        } else
         if ("idle".equals(this.agentState1)){
             if ("agent2".equals(this.name)){
                 addTempMessage("Request");
                 return new TWThought(TWAction.MOVE,getRandomDirection());
-            } else if ("agent1".equals(this.name)){
-                // get_scheme();  // 只对 agent1
-                this.rethinking = 1;
-                return think();
             }
-        } else 
-        if ("PickingTile".equals(this.agentState1)){ // 根据pick_tile_chain进行，进入这个就是curpath没了
-            if (this.agentState2 == 2){ // 策略a下的picktile 
+        } else
+        if ("PickingTile".equals(this.agentState1)){
+            if (this.agentState2 == 2){
                 do{
                     // System.out.println("DODODODODDODODO");
                     curPath = null;
@@ -969,42 +946,32 @@ public class MyTWAgent2 extends TWAgent{
                     if (pick_tile_chain.size()==0 && "agent2".equals(this.name)){
                         addTempMessage("Request");
                         agentState3 = 0;
-                        return new TWThought(TWAction.MOVE,getRandomDirection());              
+                        return new TWThought(TWAction.MOVE,getRandomDirection());
                     }
                     if (pickVanished == 1 || (this.getX()==pick_tile_chain.get(agentState3)[0] && this.getY()==pick_tile_chain.get(agentState3)[1])){
                         // System.out.println("VAlished cat");
                         agentState3 += 1;
                         pickVanished = 0;
-                        if ( getPickRoute("score", this.getX(), this.getY(), this.carriedTiles.size())<AgentParameter.aPlanPickStop || 
-                            agentState3 >= pick_tile_chain.size()){
-                            // pick_tile_chain = getPickRoute(this.getX(), this.getY());  // 重新给路线，不必要
-                            if ("agent1".equals(this.name)){
-                                // get_scheme(); // 只对agent1
-                                this.rethinking = 1;
-                                return think();
-                            }else if ("agent2".equals(this.name)){
+                        if ( getPickRoute("score", this.getX(), this.getY(), this.carriedTiles.size())<AgentParameter.aPlanPickStop ||
+                                agentState3 >= pick_tile_chain.size()){
+                            // pick_tile_chain = getPickRoute(this.getX(), this.getY());
+                            if ("agent2".equals(this.name)){
                                 addTempMessage("Request");
                                 if (agentState3 == pick_tile_chain.size()) agentState3-=1;
                                 return new TWThought(TWAction.MOVE,getRandomDirection());
                             }
                         }
-                    } 
+                    }
                     curPath = pathGenerator.findPath(this.getX(), this.getY(), pick_tile_chain.get(agentState3)[0], pick_tile_chain.get(agentState3)[1]);
                 } while (curPath == null);
                 return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection());
             } else
 
             if (this.agentState2 == 1){
-                if ("agent1".equals(this.name) && bPlanAgent1PickScore() < AgentParameter.bPlanPickScore){
-                    // get_scheme(); // 只对agent1
-                    rethinking=1;
-                    return think();
-                }
                 int[] bPlanPickTarget = getPossiblePick();
                 if (bPlanPickTarget[0] != -1){
                     curPath = pathGenerator.findPath(this.getX(), this.getY(), bPlanPickTarget[0], bPlanPickTarget[1]);
                     curPathStep=0;
-                    if (curPath == null)  System.out.println(3/(3-3));  // 不可能发生吧
                     return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection());
                 } else if (this.getDistanceTo(otherAgentPosition[0], otherAgentPosition[1])<=2){
                     curPath=null;
@@ -1013,62 +980,58 @@ public class MyTWAgent2 extends TWAgent{
                 } else {
                     curPath = null;
                     curPathStep = 0;
-                    return new TWThought(TWAction.MOVE, pathGenerator.findPath(this.getX(), this.getY(), 
-                        otherAgentPosition[0], otherAgentPosition[1]).getStep(0).getDirection());
+                    TWAgentPercept currentObj = this.getMemory().getObjects()[otherAgentPosition[0]][otherAgentPosition[1]];
+                    if (currentObj != null && currentObj.getO() instanceof TWObstacle){
+                        return new TWThought(TWAction.MOVE,getRandomDirection());
+                    }
+                    return new TWThought(TWAction.MOVE, pathGenerator.findPath(this.getX(), this.getY(),
+                            otherAgentPosition[0], otherAgentPosition[1]).getStep(0).getDirection());
                 }
             }
-        } else 
+        } else
         if ("SearchingTile".equals(this.agentState1)){
-            if (this.agentState2 == 2){ // 策略a
+            if (this.agentState2 == 2){ // Plan a
                 curPathStep = 0;
-                curPath = pathGenerator.findPath(this.getX(), this.getY(), 
-                    search_tile_chain.get(agentState3)[0], search_tile_chain.get(agentState3)[1]);
-                if (curPath == null){ // 到一个节点
+                curPath = pathGenerator.findPath(this.getX(), this.getY(),
+                        search_tile_chain.get(agentState3)[0], search_tile_chain.get(agentState3)[1]);
+                if (curPath == null){
                     this.agentState3 += 1;
                     // System.out.println("SearchingTile--------------------------------curPATH=NONE");
                     // printAgentState();
-                    if ("agent1".equals(this.name)){
-                        // get_scheme();  // 只对 agent1
-                        this.rethinking=1;
-                        return think();
-                    } else if ("agent2".equals(this.name)){
-                        addTempMessage("Request");
-                        if (agentState3 == search_tile_chain.size()) {
-                            agentState1="idle";
-                            return new TWThought(TWAction.MOVE,getRandomDirection());
-                        }
-                        this.rethinking = 1;
-                        return think();
+                    addTempMessage("Request");
+                    if (agentState3 == search_tile_chain.size()) {
+                        agentState1="idle";
+                        return new TWThought(TWAction.MOVE,getRandomDirection());
                     }
+                    this.rethinking = 1;
+                    return think();
                 } else {
                     return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection());
                 }
             } else
 
-            if (this.agentState2 == 1){ // 策略b， 只有agent1可能
+            if (this.agentState2 == 1){ // plan b
                 curPathStep=0;
                 if (agentState3 >= search_tile_chain.size()) agentState3 = 0;
                 addTempAllMessage("bPlanPickAreaUpdate "+search_tile_chain.get(agentState3)[0]+" "+search_tile_chain.get(agentState3)[1]);
-                curPath = pathGenerator.findPath(this.getX(), this.getY(), 
-                    search_tile_chain.get(agentState3)[0], search_tile_chain.get(agentState3)[1]);
+                curPath = pathGenerator.findPath(this.getX(), this.getY(),
+                        search_tile_chain.get(agentState3)[0], search_tile_chain.get(agentState3)[1]);
                 if (curPath==null){
                     this.agentState3 += 1;
-                    // get_scheme(); // 只对agent1
                     this.rethinking=1;
                     return think();
                 } else{
-                    return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection());            
+                    return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection());
                 }
             }
-        } else 
+        } else
         if ("planC".equals(this.agentState1)){
             if ( (mapsizeY+mapsizeX)/2*3-28 < getELT() ){
                 System.out.println((mapsizeY+mapsizeX)/2*3-28 +"  ?????");
-                System.out.println(3/(3-3));
             }
             int[] targetXY = cPlanSearchPoint.get(this.agentState3);
-            curPath=pathGenerator.findPath(this.getX(), this.getY(), 
-                cPlanSearchPoint.get(agentState3)[0], cPlanSearchPoint.get(agentState3)[1]);
+            curPath=pathGenerator.findPath(this.getX(), this.getY(),
+                    cPlanSearchPoint.get(agentState3)[0], cPlanSearchPoint.get(agentState3)[1]);
             curPathStep=0;
             if (curPath==null || this.getDistanceTo(cPlanSearchPoint.get(agentState3)[0], cPlanSearchPoint.get(agentState3)[1]) <= 4){
                 curPath=null;
@@ -1077,11 +1040,11 @@ public class MyTWAgent2 extends TWAgent{
                 this.rethinking=1;
                 return think();
             } else {
-                return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection()); 
+                return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection());
             }
 
-        } else if ("FuelStationFinding".equals(this.agentState1)){ // 如果正在寻找加油站
-            int lenX = (int) Math.ceil((double)mapsizeX/7); //先默认相等
+        } else if ("FuelStationFinding".equals(this.agentState1)){
+            int lenX = (int) Math.ceil((double)mapsizeX/7);
             int lenY = (int) Math.ceil((double)mapsizeY/7);
             double tempX = Math.min(lenX*7 + 0.5 - 7*Math.abs((this.agentState3-1) % (2*lenX) + 0.5 - lenX)-1, mapsizeX-3);
             double tempY = Math.min(Math.ceil((double)this.agentState3/lenX)*7 - 3-1, mapsizeX-3);
@@ -1089,44 +1052,44 @@ public class MyTWAgent2 extends TWAgent{
             int targetY=0;
             switch(this.agentState2){
 
-                case 0: // 集合 -1  指标从0开始
-                case 9: // 集合 +1
-                targetX = mapChain.get(agentState3)[0];
-                targetY = mapChain.get(agentState3)[1];
-                break;
+                case 0:
+                case 9:
+                    targetX = mapChain.get(agentState3)[0];
+                    targetY = mapChain.get(agentState3)[1];
+                    break;
 
                 case 1: // UR down
-                targetX = (int) (mapsizeX-1 - tempY);
-                targetY = (int) tempX;
-                break;
+                    targetX = (int) (mapsizeX-1 - tempY);
+                    targetY = (int) tempX;
+                    break;
                 case 2: // UR left
-                targetX = (int) (mapsizeX-1 - tempX);
-                targetY = (int) tempY;
-                break;
+                    targetX = (int) (mapsizeX-1 - tempX);
+                    targetY = (int) tempY;
+                    break;
                 case 3: // UL down
-                targetX = (int) tempY;
-                targetY = (int) tempX;
-                break;
+                    targetX = (int) tempY;
+                    targetY = (int) tempX;
+                    break;
                 case 4: // UL right
-                targetX = (int) tempX;
-                targetY = (int) tempY;
-                break;
+                    targetX = (int) tempX;
+                    targetY = (int) tempY;
+                    break;
                 case 5: // DR up
-                targetX = (int) (mapsizeX-1 - tempY);
-                targetY = (int) (mapsizeX-1 - tempX);
-                break;
+                    targetX = (int) (mapsizeX-1 - tempY);
+                    targetY = (int) (mapsizeX-1 - tempX);
+                    break;
                 case 6: // DR left
-                targetX = (int) (mapsizeX-1 - tempX);
-                targetY = (int) (mapsizeX-1 - tempY);
-                break;
+                    targetX = (int) (mapsizeX-1 - tempX);
+                    targetY = (int) (mapsizeX-1 - tempY);
+                    break;
                 case 7: // DL up
-                targetX = (int) tempY;
-                targetY = (int) (mapsizeX-1 - tempX);
-                break;
+                    targetX = (int) tempY;
+                    targetY = (int) (mapsizeX-1 - tempX);
+                    break;
                 case 8: // DL right
-                targetX = (int) tempX;
-                targetY = (int) (mapsizeX-1 - tempY);
-                break;
+                    targetX = (int) tempX;
+                    targetY = (int) (mapsizeX-1 - tempY);
+                    break;
             }
 
             if ((this.getX() == targetX && this.getY() == targetY) || this.getMemory().isCellBlocked(targetX, targetY)){
@@ -1145,15 +1108,15 @@ public class MyTWAgent2 extends TWAgent{
                 return think();
             }
 
-            if (this.getFuelLevel() > 250 && this.mapsizeX*this.mapsizeY <= 70*70){ // 在寻找fuelstation的时候油量多可以贪心一点
+            if (this.getFuelLevel() > 250 && this.mapsizeX*this.mapsizeY <= 70*70){
                 TWTile closeTile = (TWTile) this.getMemory().getClosestObjectInSensorRange(TWTile.class);
                 TWHole closeHole = (TWHole) this.getMemory().getClosestObjectInSensorRange(TWHole.class);
                 if (closeTile != null && this.carriedTiles.size() < 3 &&
-                 this.getDistanceTo(closeTile) <= 3 && closeTile.getDistanceTo(targetX, targetY) <= 6){
+                        this.getDistanceTo(closeTile) <= 3 && closeTile.getDistanceTo(targetX, targetY) <= 6){
                     curPath = pathGenerator.findPath(this.getX(), this.getY(), closeTile.getX(), closeTile.getY());
                     curPathStep=0;
                 } else if (closeHole != null && this.carriedTiles.size() > 0 &&
-                 this.getDistanceTo(closeHole) <= 3 && closeHole.getDistanceTo(targetX, targetY) <= 6){
+                        this.getDistanceTo(closeHole) <= 3 && closeHole.getDistanceTo(targetX, targetY) <= 6){
                     curPath = pathGenerator.findPath(this.getX(), this.getY(), closeHole.getX(), closeHole.getY());
                     curPathStep=0;
                 }
@@ -1161,72 +1124,66 @@ public class MyTWAgent2 extends TWAgent{
 
 
             if (curPath == null || this.rethinking==1 || curPath.getpath().size() <= curPathStep){
-                // 如果眼前有东西，判断离target距离，太远不要，近的就捡起来
                 TWPath fuelPath = pathGenerator.findPath(this.getX(), this.getY(), targetX, targetY);
-                
+
                 if (fuelPath == null){
-                    System.out.println("What The Fu*k!!!!!");
+                    System.out.println("test1");
                 } else {
                     curPath = fuelPath;
-                    curPathStep = 0;     
+                    curPathStep = 0;
                 }
             }
-            // if (fuelX==-1) this.agentState1 = "FuelStationFinding";
-            if (this.agentState3 > 999){ // 对于 case1-8好办，但是0，9可能还要添加一个变量作为标准
-                // 如果在这个之后还没有找到，agent1就直接制定空缺寻找计划（利用seenMap）
-            }
-
             this.rethinking = 0;
             return new TWThought(TWAction.MOVE, curPath.getStep(curPathStep).getDirection());
-            
+
         }
- 
+
         return new TWThought(TWAction.MOVE,getRandomDirection());
     }
 
     @Override
     protected void act(TWThought thought) {
-        System.out.println(this.getName() + " act");
+        // System.out.println(this.getName() + " act");
         Object tempObject = this.getMemory().getMemoryGrid().get(this.getX(), this.getY());
         switch(thought.getAction()){
 
             case PICKUP:
-            pickUpTile((TWTile) tempObject);
-            this.getMemory().removeObject(this.getX(), this.getY()); // remove自己的memory
-            this.addTempMessage("UpdateMemoryMap " + this.getX()+" "+ this.getY()+" " + "null");
+                pickUpTile((TWTile) tempObject);
+                this.getMemory().removeObject(this.getX(), this.getY()); // remove memory
+                this.addTempMessage("UpdateMemoryMap " + this.getX()+" "+ this.getY()+" " + "null");
 
-            // this.rethinking=1;
-            if (!AgentParameter.isPickNeedOneStep){
-                act(this.think()); 
-            }
-            return;
+                // this.rethinking=1;
+                if (!AgentParameter.isPickNeedOneStep){
+                    act(this.think());
+                }
+                return;
 
             case PUTDOWN:
-            putTileInHole((TWHole) tempObject);
-            this.getMemory().removeObject(this.getX(), this.getY());
-            this.addTempMessage("UpdateMemoryMap " + this.getX()+" "+ this.getY()+" " + "null");
+                putTileInHole((TWHole) tempObject);
+                this.getMemory().removeObject(this.getX(), this.getY());
+                this.addTempMessage("UpdateMemoryMap " + this.getX()+" "+ this.getY()+" " + "null");
 
-            // this.rethinking=1;
-            if (!AgentParameter.isPickNeedOneStep){
-                act(this.think()); 
-            }
-            return;
+                // this.rethinking=1;
+                if (!AgentParameter.isPickNeedOneStep){
+                    act(this.think());
+                }
+                return;
 
             case REFUEL:
-            this.refuel();
-            this.agentState1 = "idle";
-            this.curPath = null;
-            this.curPathStep = 0;
-            if ("agent2".equals(this.name)){
-                addTempMessage("Request");
-                return; // agent2 由于不能自主思考，所以只有发送请求策略之后return
-            }
+                this.refuel();
+                this.agentState1 = "idle";
+                this.curPath = null;
+                this.curPathStep = 0;
+                if ("agent2".equals(this.name)){
+                    addTempMessage("Request");
+                    return;
+                }
 
-            // this.rethinking=1;
-            if (!AgentParameter.isPickNeedOneStep){
-                act(this.think()); 
-            }
-            return;
+                // this.rethinking=1;
+                if (!AgentParameter.isPickNeedOneStep){
+                    act(this.think());
+                }
+                return;
 
         }
 
@@ -1258,7 +1215,7 @@ public class MyTWAgent2 extends TWAgent{
             randomDir = TWDirection.N;
         }
 
-       return randomDir;
+        return randomDir;
 
     }
 

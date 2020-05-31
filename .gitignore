@@ -1,0 +1,6 @@
+# Byte-compiled / optimized / DLL files
+*.class
+
+# macOS
+.DS_Store
+

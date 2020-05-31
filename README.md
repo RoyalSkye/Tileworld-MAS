@@ -6,12 +6,13 @@
 >  <img src="./res/1.png" width="300"/>
 >  <img src="./res/2.png" width="400"/>
 ></p>
+>
 >**Team members**: [Skye@NEU/NTU](https://github.com/RoyalSkye), Zhicheng@PKU/NTU
 
 ### Requirements
 
 - Install `Java JDK` and the JDK version should be `1.8`.
-- Install the `Java3D` library (version 1.5). You can download the library file [here](https:// www.oracle.com/technetwork/java/javase/tech/index-jsp-138252.html) and install the library [following](https://download.java.net/media/java3d/builds/ release/1.5.1/README-download.html).
+- Install the `Java3D` library (version 1.5). You can download the library file [here](https://www.oracle.com/technetwork/java/javase/tech/index-jsp-138252.html) and install the library [following](https://download.java.net/media/java3d/builds/release/1.5.1/README-download.html).
 - Download the `MASON_14.jar` file and use this jar file as the external library for compiling and running.
 
 ### Result
@@ -27,7 +28,7 @@ Table 2 shows the experiment results of our agent plans. We run 10 experiments f
 | Fuel-level |   500   |   500   |
 |   Steps    |  5000   |  5000   |
 
-<p align = "center">Table 1: Environment configurations for testing.</p>
+<p align = "left">Table 1: Environment configurations for testing.</p>
 
 | Agent plan | Env Setting |    Agent 1    |  Agent 2  |  Overall  |
 | :--------: | :---------: | :-----------: | :-------: | :-------: |
@@ -38,4 +39,4 @@ Table 2 shows the experiment results of our agent plans. We run 10 experiments f
 |     C      |    Env1     |   **160.8**   | **159.5** | **320.3** |
 |     C      |    Env2     | 164.9 **(1)** |   180.6   |   345.5   |
 
-<p align="center">Table 2: The average score for each environment configuration in 10 tests.</p>
+<p align="left">Table 2: The average score for each environment configuration in 10 tests.</p>
